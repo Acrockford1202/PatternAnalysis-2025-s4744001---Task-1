@@ -58,3 +58,45 @@ class OutConv(nn.Module):
 
     def forward(self, x):
         return self.conv(x)
+    
+class UNet(nn.Module):
+    """
+    UNet for 2D medical segmentation. 256x256
+    """
+
+    def __init__(self, in_channels: int = 1, num_classes: int = 4, base_channels: int = 64):
+        super().__init__()
+
+        # Encoder
+        self.inc   = DoubleConv(in_channels, base_channels)         
+        self.down1 = Down(base_channels, base_channels * 2)          
+        self.down2 = Down(base_channels * 2, base_channels * 4)      
+        self.down3 = Down(base_channels * 4, base_channels * 8)  
+
+        # Bottleneck
+        self.down4 = Down(base_channels * 8, base_channels * 16)  
+
+        # Decoder
+        self.up1   = Up(base_channels * 16, base_channels * 8)  
+        self.up2   = Up(base_channels * 8,  base_channels * 4)  
+        self.up3   = Up(base_channels * 4,  base_channels * 2)    
+        self.up4   = Up(base_channels * 2,  base_channels)     
+
+        self.outc  = OutConv(base_channels, num_classes)   
+
+    def forward(self, x):
+        # Encoder path with skips
+        x1 = self.inc(x)      
+        x2 = self.down1(x1)   
+        x3 = self.down2(x2)   
+        x4 = self.down3(x3)   
+        x5 = self.down4(x4)   
+
+        # Decoder path 
+        x  = self.up1(x5, x4) 
+        x  = self.up2(x,  x3) 
+        x  = self.up3(x,  x2) 
+        x  = self.up4(x,  x1) 
+
+        logits = self.outc(x)
+        return logits
