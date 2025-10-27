@@ -85,3 +85,7 @@ def get_oasis_dataloaders(base_path: str, batch_size=4, num_workers=0, resize_hw
     print(f"Train: {len(train_dataset)} | Val: {len(val_dataset)} | Test: {len(test_dataset)}")
 
     return train_loader, val_loader, test_loader
+
+if __name__ == "__main__":
+    base_path = r"C:\Users\andre\OneDrive\Desktop\Uni\COMP3710\Oasis Dataset"
+    train_loader, val_loader, test_loader = get_oasis_dataloaders(base_path)
