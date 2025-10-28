@@ -24,6 +24,17 @@ def load_grayscale(path: str) -> np.ndarray:
 def normalize_zscore(img: np.ndarray) -> np.ndarray:
     return (img - img.mean()) / (img.std() + 1e-8)
 
+def remap_mask(msk_np: np.ndarray) -> np.ndarray:
+    uniq = np.unique(msk_np)
+
+    if uniq.max() <= 3 and uniq.min() >= 0:
+        return msk_np.astype(np.int64)
+    sorted_vals = np.sort(uniq) 
+    lut = {v: i for i, v in enumerate(sorted_vals)}
+
+    remapped = np.vectorize(lut.get)(msk_np).astype(np.int64)
+    return remapped
+
 
 class OASISSliceDataset(Dataset):
     def __init__(self, image_root: str, mask_root: str, resize_hw=(256, 256)):
@@ -53,6 +64,8 @@ class OASISSliceDataset(Dataset):
         h, w = self.resize_hw
         img = cv2.resize(img, (w, h), interpolation=cv2.INTER_LINEAR)
         msk = cv2.resize(msk, (w, h), interpolation=cv2.INTER_NEAREST)
+
+        msk = remap_mask(msk)
 
         img = torch.from_numpy(img).unsqueeze(0).float()  
         msk = torch.from_numpy(msk).long()                
