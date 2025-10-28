@@ -100,14 +100,10 @@ class UNet(nn.Module):
 
         logits = self.outc(x)
         return logits
-
-import torch
-import torch.nn.functional as F
-
+    
 def dice_per_class(pred_logits: torch.Tensor, target: torch.Tensor, epsilon: float = 1e-6):
     B, C, H, W = pred_logits.shape
 
-    # convert logits -> probabilities
     probs = F.softmax(pred_logits, dim=1) 
 
     target_1hot = F.one_hot(target, num_classes=C)        
@@ -125,3 +121,7 @@ def dice_per_class(pred_logits: torch.Tensor, target: torch.Tensor, epsilon: flo
     dice_per_class = dice.mean(dim=0)
 
     return dice_per_class
+
+def mean_dice(pred_logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    per_class = dice_per_class(pred_logits, target)
+    return per_class.mean()
