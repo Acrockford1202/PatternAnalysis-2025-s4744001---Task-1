@@ -100,3 +100,28 @@ class UNet(nn.Module):
 
         logits = self.outc(x)
         return logits
+
+import torch
+import torch.nn.functional as F
+
+def dice_per_class(pred_logits: torch.Tensor, target: torch.Tensor, epsilon: float = 1e-6):
+    B, C, H, W = pred_logits.shape
+
+    # convert logits -> probabilities
+    probs = F.softmax(pred_logits, dim=1) 
+
+    target_1hot = F.one_hot(target, num_classes=C)        
+    target_1hot = target_1hot.permute(0, 3, 1, 2).float() 
+
+    probs_flat  = probs.view(B, C, -1)        
+    target_flat = target_1hot.view(B, C, -1)
+
+    intersection = (probs_flat * target_flat).sum(dim=2)         
+    pred_sum     = probs_flat.sum(dim=2)                       
+    target_sum   = target_flat.sum(dim=2)                       
+
+    dice = (2 * intersection + epsilon) / (pred_sum + target_sum + epsilon)  
+
+    dice_per_class = dice.mean(dim=0)
+
+    return dice_per_class
