@@ -17,6 +17,7 @@ class Config:
     PRINT_EVERY = 10
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     MODEL_PATH = "trained_model.pt"
+    TRAIN_LOG_PATH = "training_logs.pth"
 
 
 def train_one_epoch(model, loader, optimizer, criterion, device, num_classes, log_interval=10):
@@ -51,15 +52,19 @@ def main():
     model = UNet(cfg.IN_CHANNELS, cfg.NUM_CLASSES, 64).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.LR, weight_decay=cfg.WEIGHT_DECAY)
+    train_losses = []
 
     for epoch in range(cfg.NUM_EPOCHS):
         print(f"\n===== Epoch {epoch+1}/{cfg.NUM_EPOCHS} =====")
         train_loss = train_one_epoch(model, train_loader, optimizer, criterion, device, cfg.NUM_CLASSES, cfg.PRINT_EVERY)
+        train_losses.append(train_loss)
         print(f"[Epoch {epoch+1}] Avg Train Loss={train_loss:.4f}")
 
     torch.save(model.state_dict(), cfg.MODEL_PATH)
     print(f"[Saved] Model weights to {cfg.MODEL_PATH}")
 
+    torch.save({"train_losses": train_losses}, cfg.TRAIN_LOG_PATH)
+    print(f"[Saved] Training losses to {cfg.TRAIN_LOG_PATH}")
 
 if __name__ == "__main__":
     main()
