@@ -65,3 +65,13 @@ These are the following outputs:
 
 <img width="600" height="500" alt="image" src="https://github.com/Acrockford1202/PatternAnalysis-2025-s4744001---Task-1/blob/topic-recognition/training_curves_dice.png" />
 
+## Dependencies 
+Assume the user has the latest version of python installed. The project requires the following to be installed:
+```
+pip install torch
+pip install torchvision
+pip install torchaudio
+pip install numpy
+pip install opencv-python
+pip install matplotlib
+```
