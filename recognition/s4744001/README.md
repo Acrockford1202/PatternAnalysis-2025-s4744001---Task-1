@@ -12,3 +12,27 @@ The model used was an improved UNet. A UNet is a convolutional neural network ar
 - **Output layer:** Uses a 1×1 convolution to predict pixel-wise class probabilities for four tissue classes.
 
 The model is trained using Cross-Entropy Loss, with performance monitored using the Dice coefficient to evaluate overlap between predicted and ground-truth masks.
+
+## Data Preprocessing
+The data was processed to prepare the 2D OASIS brain MRI slices for segmentation. The steps taken were pairing image/mask PNGs, loading them in grayscale, applying z-score normalisation to images, remapping mask labels to class IDs, resizing images to 256×256, and returning the PyTorch tensors for training, validation, and testing. 
+
+## Training and Evaluation
+To train the model run:
+``` 
+python train.py
+```
+- The model learns from the training dataset using CrossEntropyLoss.
+- Training runs for 20 epochs.
+- The Dice coefficient is calculated after each epoch.
+- Validation is performed at the end of every epoch.
+- Training and validation metrics are logged for later analysis in predict.py
+- The final trained model is saved as trained_model.pt, and logs are saved to training_logs.pth.
+
+Example Output while training:
+``` 
+===== Epoch 19/20 =====
+[Train] Batch 10/2416 Loss=0.0188
+[Val] Batch 2290/2416 Loss=0.0187 Dice=0.9642
+[Epoch 19] TrainLoss=0.0232 | ValLoss=0.0220 | TrainDice=0.9615 | ValDice=0.9607
+```
+
