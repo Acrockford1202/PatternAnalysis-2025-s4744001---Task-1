@@ -8,7 +8,7 @@ class Config:
     NUM_CLASSES = 4
     IN_CHANNELS = 1
     IMG_SIZE = (256, 256)
-    BATCH_SIZE = 8
+    BATCH_SIZE = 4
     NUM_WORKERS = 0
     LR = 1e-3
     WEIGHT_DECAY = 1e-5
@@ -36,13 +36,13 @@ def train_one_epoch(model, loader, optimizer, criterion, device, num_classes, lo
     return total_loss / len(loader)
 
 @torch.no_grad()
-def evaluate(model, loader, criterion, device, num_classes):
+def evaluate(model, loader, criterion, device, num_classes, log_interval=10, split_name="Val"):
     model.eval()
     total_loss, total_dice = 0, 0
     dice_sums = None
     n_batches = 0
 
-    for imgs, masks in loader:
+    for batch_idx, (imgs, masks) in enumerate(loader):
         imgs, masks = imgs.to(device), masks.to(device)
         logits = model(imgs)
         loss = criterion(logits, masks)
@@ -58,6 +58,9 @@ def evaluate(model, loader, criterion, device, num_classes):
 
         n_batches += 1
 
+        if (batch_idx + 1) % log_interval == 0 or (batch_idx + 1) == len(loader):
+            print(f"[{split_name}] Batch {batch_idx+1}/{len(loader)} "
+                  f"Loss={loss.item():.4f} Dice={per_class.mean().item():.4f}")
     return (
         total_loss / n_batches,
         total_dice / n_batches,
@@ -89,7 +92,7 @@ def main():
         train_loss = train_one_epoch(model, train_loader, optimizer, criterion, device, cfg.NUM_CLASSES, cfg.PRINT_EVERY)
         val_loss, val_dice, val_per_class = evaluate(model, val_loader, criterion, device, cfg.NUM_CLASSES)
         train_eval_loss, train_dice, _ = evaluate(model, train_loader, criterion, device, cfg.NUM_CLASSES)
-        
+
         train_losses.append(train_loss)
         val_losses.append(val_loss)
         train_dices.append(train_dice)
